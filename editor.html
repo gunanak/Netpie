@@ -9,6 +9,51 @@
   		right: 0;
   		z-index: 3000;
 	}
+
+	.sidenav {
+	    height: 100%;
+	    width: 0;
+	    position: fixed;
+	    z-index: 1;
+	    top: 0;
+	    left: 0;
+	    background-color: #111;
+	    overflow-x: hidden;
+	    transition: 0.5s;
+	    padding-top: 60px;
+	}
+
+	.sidenav a {
+	    padding: 8px 8px 8px 32px;
+	    text-decoration: none;
+	    font-size: 25px;
+	    color: #818181;
+	    display: block;
+	    transition: 0.3s;
+	}
+
+	.sidenav a:hover, .offcanvas a:focus{
+	    color: #f1f1f1;
+	}
+
+	.sidenav .closebtn {
+	    position: absolute;
+	    top: 0;
+	    right: 25px;
+	    font-size: 36px;
+	    margin-left: 50px;
+	}
+
+	#main {
+	    transition: margin-left .5s;
+	    padding: 16px;
+	}
+
+	@media screen and (max-height: 450px) {
+	  .sidenav {padding-top: 15px;}
+	  .sidenav a {font-size: 18px;}
+	}
+
 	</style>
 </head>
 <body  style="margin:5px; padding:0px" >
@@ -28,11 +73,18 @@
 	<input class="btn btn-info btn-md" style="outline:none; " type='file' accept='text/plain' onchange='openFile(event)' ><br>
 	
 	<button type="button" id="incsize" onClick="inc();">+</button>
+	<!-- <div class="tab">
+  <button class="tablinks" onclick="openCity(event, 'London')" id="defaultOpen">London</button>
+  <button class="tablinks" onclick="openCity(event, 'Paris')" style="display:visible">Paris</button>
+  <button class="tablinks" onclick="openCity(event, 'Tokyo')">Tokyo</button>
+</div> -->
 
 	<div class="container-fluid" style="padding-top:5px; padding-left:0px; padding-right:0px">
 		<div class="row">
-			<div class="col-lg-6 col-md-6 col-sm-6">
-				<div id="editor" style="width:100%;height:600px;border:5px solid grey " ></div>
+			<div id="London" class="tabcontent">
+				<div  class="col-lg-6 col-md-6 col-sm-6" >
+					<div id="editor" style="width:100%;height:600px;border:5px solid grey " ></div>
+				</div>
 			</div>
 			<div class="col-lg-6 col-md-6 col-sm-6" >
 				<iframe id="display" style="width:100%;height:600px;border:5px solid lightgrey background-color:#FFFFFF;"></iframe>
@@ -40,18 +92,67 @@
 		</div>
 	</div>
 
+
+	<div id="mySidenav" class="sidenav">
+	  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+	  <a href="#"><button>About</button></a>
+	  <a href="#">Services</a>
+	  <a href="#">Clients</a>
+	  <a href="#">Contact</a>
+	</div>
+	<div id="main">
+  		<h2>Sidenav Push Example</h2>
+  		<p>Click on the element below to open the side navigation menu, and push this content to the right.</p>
+  		<span style="font-size:30px;cursor:pointer" onclick="openNav()">&#9776; open</span>
+	</div>
+
 	<script src="node_modules/monaco-editor/min/vs/loader.js"></script>
 	<script>
+	///// side nevigation
+	function openNav() {
+	    document.getElementById("mySidenav").style.width = "250px";
+	    document.getElementById("main").style.marginLeft = "250px";
+	}
+
+	function closeNav() {
+	    document.getElementById("mySidenav").style.width = "0";
+	    document.getElementById("main").style.marginLeft= "0";
+	}
+
+
+	//////////
+	function openCity(evt, cityName) {
+	    var i, tabcontent, tablinks;
+	    tabcontent = document.getElementsByClassName("tabcontent");
+	    for (i = 0; i < tabcontent.length; i++) {
+	        tabcontent[i].style.display = "none";
+	    }
+	    tablinks = document.getElementsByClassName("tablinks");
+	    for (i = 0; i < tablinks.length; i++) {
+	        tablinks[i].className = tablinks[i].className.replace(" active", "");
+	    }
+	    document.getElementById(cityName).style.display = "block";
+	    evt.currentTarget.className += " active";
+	}
+
+
+
+
+
+	var game = []
+	var namefile
 	var editor;
 	var fontsize = 16;
 	require.config({ paths: { 'vs': 'node_modules/monaco-editor/min/vs' }});
 	require(['vs/editor/editor.main'], function() {
 		var val
-		if (localStorage.getItem('editor') === null) {
+		var file
+		if (localStorage.getItem('finalFile') === null) {
             val =  "function setup() {\n}\nfunction draw() {\n\tellipse(50,50,30,30) \n}"
 			console.log(''+val)
         }else{
-            val = localStorage.getItem('editor');
+            file = localStorage.getItem('finalFile');
+            val = localStorage.getItem(file);
         }
 		editor = monaco.editor.create(document.getElementById('editor'), {
 			value: [
@@ -90,12 +191,21 @@
 
 	function inc(){
 		
-		var a = editor.getValue()
-		var aa = String(a);
-		var b = a.fontsize(20);
-		// editor.setValue(b)
+		var position = editor.getPosition()
+		var a = editor.getValue(position)
+		console.log(''+a)
+		// var aa = String(a);
+		// var b = a.fontsize(20);
 		// document.getElementById("editor").innerHTML = b;
-		// console.log(''+a);
+
+		// var c = new Positio(5,5)
+		// var c = editor.getModel()
+		// var pos = {
+		// 		lineNumber: 5,
+		// 		column: 8
+		// 	};
+		// editor.setPosition(new monaco.Position(5,5))
+		// console.log(''+c);
 
 	}
 
@@ -158,16 +268,36 @@
 	var openFile = function(event) {
 		var input = event.target;
 		var reader = new FileReader();
-		reader.onload = function(){
+		reader.onload = function(file){
 		var text = reader.result;
-
-		// var node = document.getElementById('output');
+		
+		
 		editor.setValue(text)
 		var val = editor.getValue(); 
-      	localStorage.setItem('editor', val);
+      	localStorage.setItem(namefile, val);
+      	localStorage.setItem('finalFile',namefile);
+
 
 		};
 		reader.readAsText(input.files[0]);
+		namefile = input.files[0].name;
+		// console.log(namefile)
+		var btn = document.createElement("BUTTON");
+		btn.classname =  namefile;       // Create a <button> element
+		var t = document.createTextNode(""+namefile);       // Create a text node
+		btn.appendChild(t);
+		btn.onclick = function(){
+      //       val = localStorage.getItem(''+btn.classname);
+    		// editor.setValue(val)
+    		var value = [],
+    		keys = Object.keys(localStorage),
+    		i = keys.length;
+    		// while(i--){
+    			value.push(localStorage.getItem(keys[i-1]))
+    		// }
+    		console.log(value[0])
+  		};                                // Append the text to <button>
+		document.getElementById('mySidenav').appendChild(btn);
 	};
 </script>
 
